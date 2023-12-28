@@ -14,7 +14,7 @@
         speed: 3
     }
 
-    class placedBlock {
+    class PlacedBlock {
         constructor(left, right, height, y) {
             this.left = left;
             this.right = right;
@@ -23,14 +23,37 @@
         }
     }
 
-    const placedBlocks = [];
+    const firstBlock = new PlacedBlock(0, canvas.width, 0, 0);
+    const placedBlocks = [firstBlock];
+    let isGameOver = false;
 
     window.addEventListener("keydown", () => {
-        if (window.event.code === 'Space') {
-            const aplacedBlock = new placedBlock(stackBlock.left, stackBlock.right, stackBlock.height, stackBlock.y);
-            placedBlocks.push(aplacedBlock)
+        if (window.event.code === 'Space' && !isGameOver) {
+            const placedBlock = new PlacedBlock(stackBlock.left, stackBlock.right, stackBlock.height, stackBlock.y);
+            
+            // check if left is within previous placedBlock, if not, make stackblock left equal to placedBlock left
+            let previousBlock = placedBlocks[placedBlocks.length - 1]
+
+            console.log(previousBlock.left, previousBlock.right)
+            console.log(placedBlock.left, placedBlock.right)
+
+            if (placedBlock.right < previousBlock.left || placedBlock.left > previousBlock.right) {
+                isGameOver = true;
+                return;
+            }
+
+            if (placedBlock.left < previousBlock.left) {
+                placedBlock.left = previousBlock.left;
+            }
+            if (placedBlock.right > previousBlock.right) {
+                placedBlock.right = previousBlock.right;
+            }
+
             stackBlock.y -= stackBlock.height;
             stackBlock.speed += 0.5
+            stackBlock.left = placedBlock.left;
+            stackBlock.right = placedBlock.right;
+            placedBlocks.push(placedBlock)
         }
     }, true);
 
@@ -41,21 +64,25 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
-        ctx.rect(stackBlock.left, stackBlock.y, stackBlock.right, stackBlock.height);
         ctx.fillStyle = "#ffffff";
-        ctx.fill();
+
+        if (!isGameOver) {
+            ctx.rect(stackBlock.left, stackBlock.y, stackBlock.right - stackBlock.left, stackBlock.height);
+            ctx.fill();
+        }
 
         for (let i = 0; i < placedBlocks.length; i++) {
             block = placedBlocks[i];
             ctx.beginPath();
-            ctx.rect(block.left, block.y, block.right, block.height);
+            ctx.rect(block.left, block.y, block.right - block.left, block.height);
             ctx.fill()
         }
 
         stackBlock.left += (timestamp - last) / 10 * stackBlock.direction * stackBlock.speed;
+        stackBlock.right += (timestamp - last) / 10 * stackBlock.direction * stackBlock.speed;
 
         let hasHitLeftWall = stackBlock.left <= 0 && stackBlock.direction != 1;
-        let hasHitRightWall = stackBlock.left >= canvas.width - stackBlock.right && stackBlock.direction == 1;
+        let hasHitRightWall = stackBlock.right >= canvas.width && stackBlock.direction == 1;
 
         if (hasHitLeftWall || hasHitRightWall) {
             stackBlock.direction *= -1;
