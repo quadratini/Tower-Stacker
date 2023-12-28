@@ -6,30 +6,28 @@
     let last = performance.now();
 
     const stackBlock = {
-        x: 0,
+        left: 0,
+        right: 200,
         y: canvas.height - 20,
-        width: 200,
         height: 20,
         direction: 1,
         speed: 3
     }
 
     class placedBlock {
-        constructor(x, y, width, height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
+        constructor(left, right, height, y) {
+            this.left = left;
+            this.right = right;
             this.height = height;
+            this.y = y;
         }
     }
 
     const placedBlocks = [];
 
-
-    // listeners
     window.addEventListener("keydown", () => {
         if (window.event.code === 'Space') {
-            const aplacedBlock = new placedBlock(stackBlock.x, stackBlock.y, stackBlock.width, stackBlock.height);
+            const aplacedBlock = new placedBlock(stackBlock.left, stackBlock.right, stackBlock.height, stackBlock.y);
             placedBlocks.push(aplacedBlock)
             stackBlock.y -= stackBlock.height;
             stackBlock.speed += 0.5
@@ -43,21 +41,21 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
-        ctx.rect(stackBlock.x, stackBlock.y, stackBlock.width, stackBlock.height);
+        ctx.rect(stackBlock.left, stackBlock.y, stackBlock.right, stackBlock.height);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
 
         for (let i = 0; i < placedBlocks.length; i++) {
             block = placedBlocks[i];
             ctx.beginPath();
-            ctx.rect(block.x, block.y, block.width, block.height);
+            ctx.rect(block.left, block.y, block.right, block.height);
             ctx.fill()
         }
 
-        stackBlock.x += (timestamp - last) / 10 * stackBlock.direction * stackBlock.speed;
+        stackBlock.left += (timestamp - last) / 10 * stackBlock.direction * stackBlock.speed;
 
-        let hasHitLeftWall = stackBlock.x <= 0 && stackBlock.direction != 1;
-        let hasHitRightWall = stackBlock.x >= canvas.width - stackBlock.width && stackBlock.direction == 1;
+        let hasHitLeftWall = stackBlock.left <= 0 && stackBlock.direction != 1;
+        let hasHitRightWall = stackBlock.left >= canvas.width - stackBlock.right && stackBlock.direction == 1;
 
         if (hasHitLeftWall || hasHitRightWall) {
             stackBlock.direction *= -1;
